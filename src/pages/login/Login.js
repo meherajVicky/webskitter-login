@@ -6,7 +6,8 @@ import "./login.css";
 import { useDispatch } from "react-redux";
 import { UserAction } from "../../redux/user";
 import { useHistory } from "react-router";
-
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import app from "../../config/firebase";
 
 export default function Login() {
   const [loginData, setloginData] = useState({
@@ -46,6 +47,34 @@ export default function Login() {
       alert("wrong password and Name");
     }
   };
+  const onSubmit = (event) => {
+    event.preventDefault();
+    const auth = getAuth(app);
+    signInWithEmailAndPassword(auth, loginData.email, loginData.password)
+      .then((userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+
+        localStorage.setItem("token", user?.accessToken);
+
+        const userDetails = {
+          email: user?.email,
+        };
+
+        localStorage.setItem("userDetails", JSON.stringify(userDetails));
+        dispatch(UserAction.setUser(user));
+        history.push("/dashboard");
+
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        alert(error);
+        console.log(error);
+        alert(error);
+      });
+  };
   return (
     <Card>
       <h3 className="text-center">WebSkitters</h3>
@@ -77,11 +106,12 @@ export default function Login() {
           />
         </div>
         <Button onClick={onLogin}>Login</Button>
+        <br></br>
+        <br></br>
+        <Button onClick={onSubmit}>login with gmail</Button>
       </form>
       <h6 style={{ textAlign: "center" }}> or</h6>
-      <Link to="/email-login">
-        <h4>log in via email</h4>
-      </Link>
+     
       <br></br>
       <Link to="/registration">
         <p>new in WebSkitters?</p>
